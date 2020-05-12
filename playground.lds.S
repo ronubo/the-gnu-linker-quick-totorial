@@ -22,7 +22,14 @@ bar = 0xbaa7;
 
 SECTIONS
 {
-  iamsection : { iamvar = 5; }
-  .iamsection : { iamvar2 = 0xbeef; }
- 
+  . = 0x200000 ; 
+  iamsection : { KEEP(*(iamsection)) ; iamvar = 5; } = 0x11111111
+  . = 0x1000 ; 
+  .iamsection :  { KEEP(*(.iamsection)) ; LONG(0x1234) ; BYTE(0x52) ; BYTE(0x6f) ; BYTE(0x6e) ; BYTE(0x4d) ; iamvar2 = 0xbeef; }
+  .nop  : { . = 0x10 ;  LONG(0xaaaaaaaa);  } = 0x90909090   
+  .nop2 : { . = 0x100 ; LONG(0xbbbbbbbb) } = 0xDEADC0DE
 }
+
+
+. = 0x30 ; 
+an_end_var = 7;
