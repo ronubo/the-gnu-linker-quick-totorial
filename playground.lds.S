@@ -16,14 +16,33 @@ ENTRY(my_starting_point)
 foo = 0xf000;
 bar = 0xbaa7;
 
-/* Will have no effect
-. = 0x12345678;
-*/
+my_starting_point = 0x200000 ; /* could select other addresses as well, important thing is to be loaded there */
+
+PHDRS
+{
+/*    null PT_NULL; */
+/*    headers PT_PHDR PHDRS  ;   */
+/*  interp PT_INTERP ; */
+/*  text PT_LOAD FILEHDR PHDRS ; */
+/*  data PT_LOAD ; */
+    my_custom_header PT_LOAD FILEHDR PHDRS AT(0x200000) FLAGS(0x1 | 0x4) ; 
+/*  dynamic PT_DYNAMIC ; */
+}
+
+
+
 
 SECTIONS
 {
   . = 0x200000 ; 
-  iamsection : { KEEP(*(iamsection)) ; iamvar = 5; } = 0x11111111
+  iamsection : { 
+       INPUT_SECTION_FLAGS (SHF_ALLOC & SHF_EXECINSTR) *(*) ; 
+       BYTE(0x90);
+       BYTE(0xb8);BYTE(0x01);BYTE(0x00);BYTE(0x00);BYTE(0x00);
+       BYTE(0xbb);BYTE(0x2a);BYTE(0x00);BYTE(0x00);BYTE(0x00);
+       BYTE(0xcd);BYTE(0x80);
+       BYTE(0x90);
+   } :my_custom_header = 0x11111111
   . = 0x1000 ; 
   .iamsection :  { KEEP(*(.iamsection)) ; LONG(0x1234) ; BYTE(0x52) ; BYTE(0x6f) ; BYTE(0x6e) ; BYTE(0x4d) ; iamvar2 = 0xbeef; }
   .nop  : { . = 0x10 ;  LONG(0xaaaaaaaa);  } = 0x90909090   
