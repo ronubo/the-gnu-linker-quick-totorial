@@ -9,10 +9,6 @@ movl $42,%ebx
 .byte 0x80
 nop
 
-.globl main
-main:
-nop
-nop
 
 /* write 
 mv $4, %eax

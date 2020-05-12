@@ -12,36 +12,43 @@ ld: i386 architecture of input file `../empty_32.o' is incompatible with i386:x8
 OUTPUT_ARCH(i386)
 ENTRY(my_starting_point)
 
+
 /* Define some variable/addresses - they will be *ABS* in objdump -t because they do not belong to a section*/
 foo = 0xf000;
 bar = 0xbaa7;
 
-my_starting_point = 0x200000 ; /* could select other addresses as well, important thing is to be loaded there */
-
-MEMORY
-  {
-    code (rx)  : ORIGIN = my_starting_point, LENGTH = 14
-    ram (!rx) : org = 0x40000000, l = 4M
-  }
-
+/* . = . + SIZEOF_HEADERS ;  */
+PHDRS
+{
+/*    null PT_NULL;
+    headers PT_PHDR PHDRS  ;   */
+/*  interp PT_INTERP ; */ 
+/*  text PT_LOAD FILEHDR PHDRS ; */
+/*  data PT_LOAD ; */
+    custom PT_LOAD FILEHDR PHDRS ; 
+/*  dynamic PT_DYNAMIC ; */
+}
 
 
 SECTIONS
 {
-  . = 0x200000 ; 
-  iamsection : { 
-       BYTE(0x90);
-       BYTE(0xb8);BYTE(0x01);BYTE(0x00);BYTE(0x00);BYTE(0x00);
-       BYTE(0xbb);BYTE(0x2a);BYTE(0x00);BYTE(0x00);BYTE(0x00);
-       BYTE(0xcd);BYTE(0x80);
-       BYTE(0x90);
-   }>code = 0x11111111
-  . = 0x1000 ; 
-/*  .iamsection :  { KEEP(*(.iamsection)) ; LONG(0x1234) ; BYTE(0x52) ; BYTE(0x6f) ; BYTE(0x6e) ; BYTE(0x4d) ; iamvar2 = 0xbeef; }
-  .nop  : { . = 0x10 ;  LONG(0xaaaaaaaa);  } = 0x90909090   
-  .nop2 : { . = 0x100 ; LONG(0xbbbbbbbb) } = 0xDEADC0DE
-*/
+  .some.section : {/* Nothing is define here so you will not see it in the output*/}
+  .another.section : {
+     somevariable = 0x42 ;   /* offset with respect to the current section address */
+     KEEP( *(.another.section) );
+  }
+
+  /* . = 0x800000;  this sets the VA */
+     . = 0x200054 ;
+  custom :  { *(custom) } : custom 
+  
+
+  /DISCARD/ : {*(.symtab)}
+  /* Important note: GNU ld does not let .shstrtab .symtab and .strtab  be discarded. As per the time of writing, LLVM's ld doesn't allow it either (and errs when trying) */
+
 }
 
-. = 0x30 ; 
-an_end_var = 7;
+
+somevariable2 = 0x42 ;   /* global offset. If we called it in the same name - the global would override the section one! */
+
+
